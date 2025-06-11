@@ -14,22 +14,31 @@ function press(value) {
       value = "*";
       break;
     case "√":
-      currentInput = Math.sqrt(parseFloat(currentInput)).toString();
+      if (!currentInput.startsWith("√")) {
+        currentInput = "√" + currentInput;
+      }
+      updateDisplay();
       return;
     case "x²":
-      currentInput = Math.pow(parseFloat(currentInput), 2).toString();
+      if (!currentInput.endsWith("^2")) {
+        currentInput += "^2";
+      }
+      updateDisplay();
       return;
     case "1/x":
-      currentInput = (1 / parseFloat(currentInput)).toString();
+      if (!currentInput.endsWith("^(-1)")) {
+        currentInput += "^(-1)";
+      }
+      updateDisplay();
       return;
   }
 
-  currentInput += value;
+  if (currentInput === "0" && /[0-9]/.test(value)) {
+    currentInput = value;
+  } else {
+    currentInput += value;
+  }
   currentInput = currentInput.replace(/^\+/, "");
-  updateDisplay();
-}
-function clearEntry() {
-  currentInput = "0";
   updateDisplay();
 }
 function clearAll() {
@@ -53,7 +62,20 @@ function toggleSign() {
 
 function calculate() {
   try {
-    const expression = currentInput.replace(/[^0-9+\-*/.()]/g, "");
+    let expression = currentInput;
+    expression = expression.replace(
+      /(\d+(?:\.\d+)?)\^2/g,
+      (match, num) => `(${num}*${num})`
+    );
+    expression = expression.replace(
+      /(\d+(?:\.\d+)?)\^\(-1\)/g,
+      (match, num) => `(1/(${num}))`
+    );
+    expression = expression.replace(
+      /√(\d+(?:\.\d+)?)/g,
+      (match, num) => `Math.sqrt(${num})`
+    );
+    expression = expression.replace(/[^0-9+\-*/.()Mathsqrt]/g, "");
     currentInput = eval(expression).toString();
     resultDisplayed = true;
     updateDisplay();
@@ -64,5 +86,12 @@ function calculate() {
 }
 
 function updateDisplay() {
-  resultText.textContent = currentInput;
+  let display = currentInput.replace(/\^2/g, "<sup>2</sup>");
+  display = display.replace(/\^\(-1\)/g, "<sup>-1</sup>");
+  display = display.replace(/√/g, "&radic;");
+  resultText.innerHTML = display;
+}
+function clearEntry() {
+  currentInput = "0";
+  updateDisplay();
 }
